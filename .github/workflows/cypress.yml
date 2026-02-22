@@ -34,22 +34,28 @@ jobs:
       - name: Run Smoke Tests
         run: npx cypress run --env TAGS="@smoke"
 
-      - name: Merge JSON Reports
-        if: always()
-        run: |
-          mkdir -p cypress/reports
-          npx mochawesome-merge "cypress/reports/cucumber-json/*.json" > cypress/reports/final-report.json
-
       - name: Generate HTML Report
         if: always()
-        run: npx marge cypress/reports/final-report.json --reportDir cypress/reports --inline
+        run: |
+          node -e "
+          const reporter = require('cucumber-html-reporter');
+          const options = {
+            theme: 'bootstrap',
+            jsonFile: 'cypress/reports/cucumber-json/output.json',
+            output: 'cypress/reports/smoke-report.html',
+            reportSuiteAsScenarios: true,
+            launchReport: false,
+            metadata: { 'Test Environment': 'GitHub Actions' }
+          };
+          reporter.generate(options);
+          "
 
       - name: Upload Smoke Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: smoke-report
-          path: cypress/reports/
+          path: cypress/reports/smoke-report.html
 
   cypress-regression:
     name: Run Regression Tests
@@ -76,19 +82,25 @@ jobs:
       - name: Run Regression Tests
         run: npx cypress run --env TAGS="@regression"
 
-      - name: Merge JSON Reports
-        if: always()
-        run: |
-          mkdir -p cypress/reports
-          npx mochawesome-merge "cypress/reports/cucumber-json/*.json" > cypress/reports/final-report.json
-
       - name: Generate HTML Report
         if: always()
-        run: npx marge cypress/reports/final-report.json --reportDir cypress/reports --inline
+        run: |
+          node -e "
+          const reporter = require('cucumber-html-reporter');
+          const options = {
+            theme: 'bootstrap',
+            jsonFile: 'cypress/reports/cucumber-json/output.json',
+            output: 'cypress/reports/regression-report.html',
+            reportSuiteAsScenarios: true,
+            launchReport: false,
+            metadata: { 'Test Environment': 'GitHub Actions' }
+          };
+          reporter.generate(options);
+          "
 
       - name: Upload Regression Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: regression-report
-          path: cypress/reports/
+          path: cypress/reports/regression-report.html
