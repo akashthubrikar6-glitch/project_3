@@ -8,15 +8,7 @@ const createEsbuildPlugin =
 
 module.exports = defineConfig({
 
-  reporter: "cypress-mochawesome-reporter",
-  reporterOptions: {
-    reportDir: "cypress/reports",
-    charts: true,
-    reportPageTitle: "Cypress Test Report",
-    embeddedScreenshots: true,
-    inlineAssets: true,
-    saveAllAttempts: false,
-  },
+  // ❌ reporter aani reporterOptions REMOVE kela - Cucumber sobat conflict hoto
 
   env: {
     TAGS: "@smoke or @regression"
@@ -26,9 +18,9 @@ module.exports = defineConfig({
     specPattern: "cypress/e2e/features/**/*.feature",
 
     async setupNodeEvents(on, config) {
-      
-      // ✅ हे ADD करा - Mochawesome Plugin
-      require("cypress-mochawesome-reporter/plugin")(on);
+
+      // ❌ mochawesome plugin pan REMOVE kara
+      // require("cypress-mochawesome-reporter/plugin")(on);
 
       await addCucumberPreprocessorPlugin(on, config);
 
