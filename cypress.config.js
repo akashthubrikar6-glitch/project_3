@@ -28,22 +28,5 @@ module.exports = defineConfig({
 
       return config;
     },
-  },
-
-  reporter: "cypress-multi-reporters",
-  reporterOptions: {
-    reporterEnabled: "cucumber-html-reporter",
-    cucumberHtmlReporterOptions: {
-      theme: "bootstrap",
-      jsonFile: "cypress/reports/cucumber-json/output.json",
-      output: "cypress/reports/cucumber-report.html",
-      reportSuiteAsScenarios: true,
-      launchReport: false,
-      metadata: {
-        "Test Environment": "GitHub Actions",
-        "Browser": "Chrome",
-        "Executed": "GitHub CI/CD"
-      }
-    }
   }
 });
