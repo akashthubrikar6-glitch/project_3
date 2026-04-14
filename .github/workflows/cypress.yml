@@ -34,30 +34,18 @@ jobs:
         run: npm install
 
       - name: Run Smoke Tests
-        run: npx cypress run --env TAGS="@smoke"
+        run: npx cypress run --env TAGS="@smoke" --reporter json --reporter-options reportDir=cypress/reports/json/smoke,reportFilename=results
 
-      - name: Generate HTML Report
+      - name: Generate Allure Report for Smoke Tests
         if: always()
-        run: |
-          node -e "
-          const reporter = require('cucumber-html-reporter');
-          const options = {
-            theme: 'bootstrap',
-            jsonFile: 'cypress/reports/cucumber-json/output.json',
-            output: 'cypress/reports/smoke-report.html',
-            reportSuiteAsScenarios: true,
-            launchReport: false,
-            metadata: { 'Test Environment': 'GitHub Actions' }
-          };
-          reporter.generate(options);
-          "
+        run: npx allure generate cypress/reports/json/smoke --clean -o cypress/reports/allure-report-smoke
 
-      - name: Upload Smoke Report
+      - name: Upload Allure Smoke Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: smoke-report
-          path: cypress/reports/smoke-report.html
+          name: allure-smoke-report
+          path: cypress/reports/allure-report-smoke
 
   cypress-regression:
     name: Run Regression Tests
@@ -82,29 +70,17 @@ jobs:
         run: npm install
 
       - name: Run Regression Tests
-        run: npx cypress run --env TAGS="@regression"
+        run: npx cypress run --env TAGS="@regression" --reporter json --reporter-options reportDir=cypress/reports/json/regression,reportFilename=results
 
-      - name: Generate HTML Report
+      - name: Generate Allure Report for Regression Tests
         if: always()
-        run: |
-          node -e "
-          const reporter = require('cucumber-html-reporter');
-          const options = {
-            theme: 'bootstrap',
-            jsonFile: 'cypress/reports/cucumber-json/output.json',
-            output: 'cypress/reports/regression-report.html',
-            reportSuiteAsScenarios: true,
-            launchReport: false,
-            metadata: { 'Test Environment': 'GitHub Actions' }
-          };
-          reporter.generate(options);
-          "
+        run: npx allure generate cypress/reports/json/regression --clean -o cypress/reports/allure-report-regression
 
-      - name: Upload Regression Report
+      - name: Upload Allure Regression Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: regression-report
-          path: cypress/reports/regression-report.html
+          name: allure-regression-report
+          path: cypress/reports/allure-report-regression
 
 # Akash
