@@ -72,6 +72,28 @@ jobs:
             cypress/reports/smoke-report.html
             allure-report-smoke
 
+      - name: Send Email - Smoke Tests Report
+        uses: dawidd6/action-send-mail@v3
+        if: always()
+        with:
+          server_address: ${{ secrets.MAIL_SERVER }}
+          server_port: ${{ secrets.MAIL_PORT }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "🧪 Smoke Tests Report - ${{ job.status }}"
+          to: ${{ secrets.TO_EMAILS }}
+          from: "Cypress CI"
+          body: |
+            Smoke Tests Execution Report
+            
+            Status: ${{ job.status }}
+            Run ID: ${{ github.run_id }}
+            Branch: ${{ github.ref }}
+            Commit: ${{ github.sha }}
+            
+            Report attached!
+          attachments: cypress/reports/smoke-report.html
+
   cypress-regression:
     name: Run Regression Tests
     runs-on: ubuntu-latest
@@ -132,5 +154,27 @@ jobs:
           path: |
             cypress/reports/regression-report.html
             allure-report-regression
+
+      - name: Send Email - Regression Tests Report
+        uses: dawidd6/action-send-mail@v3
+        if: always()
+        with:
+          server_address: ${{ secrets.MAIL_SERVER }}
+          server_port: ${{ secrets.MAIL_PORT }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "🧪 Regression Tests Report - ${{ job.status }}"
+          to: ${{ secrets.TO_EMAILS }}
+          from: "Cypress CI"
+          body: |
+            Regression Tests Execution Report
+            
+            Status: ${{ job.status }}
+            Run ID: ${{ github.run_id }}
+            Branch: ${{ github.ref }}
+            Commit: ${{ github.sha }}
+            
+            Report attached!
+          attachments: cypress/reports/regression-report.html
 
 # Akash
