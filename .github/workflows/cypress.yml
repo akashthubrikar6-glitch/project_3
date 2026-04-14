@@ -72,31 +72,6 @@ jobs:
             cypress/reports/smoke-report.html
             allure-report-smoke
 
-      - name: Send Email - Smoke Tests Complete
-        uses: dawidd6/action-send-mail@v3
-        if: always()
-        with:
-          server_address: ${{ secrets.MAIL_SERVER }}
-          server_port: ${{ secrets.MAIL_PORT }}
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "🧪 Smoke Tests Complete - ${{ job.status }}"
-          to: ${{ secrets.TEAM_EMAILS }}
-          from: "Cypress CI Automation"
-          body: |
-            ✅ Smoke Tests Execution Report
-            
-            Status: ${{ job.status }}
-            Run ID: ${{ github.run_id }}
-            Branch: ${{ github.ref }}
-            Commit: ${{ github.sha }}
-            
-            📊 Reports Generated:
-            1. Cucumber HTML Report
-            2. Allure Professional Dashboard
-            
-            Both reports available in Artifacts!
-
   cypress-regression:
     name: Run Regression Tests
     runs-on: ubuntu-latest
@@ -157,30 +132,5 @@ jobs:
           path: |
             cypress/reports/regression-report.html
             allure-report-regression
-
-      - name: Send Email - Regression Tests Complete
-        uses: dawidd6/action-send-mail@v3
-        if: always()
-        with:
-          server_address: ${{ secrets.MAIL_SERVER }}
-          server_port: ${{ secrets.MAIL_PORT }}
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "🧪 Regression Tests Complete - ${{ job.status }}"
-          to: ${{ secrets.TEAM_EMAILS }}
-          from: "Cypress CI Automation"
-          body: |
-            ✅ Regression Tests Execution Report
-            
-            Status: ${{ job.status }}
-            Run ID: ${{ github.run_id }}
-            Branch: ${{ github.ref }}
-            Commit: ${{ github.sha }}
-            
-            📊 Reports Generated:
-            1. Cucumber HTML Report
-            2. Allure Professional Dashboard
-            
-            Both reports available in Artifacts!
 
 # Akash
