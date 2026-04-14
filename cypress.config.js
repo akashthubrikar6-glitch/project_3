@@ -30,10 +30,9 @@ module.exports = defineConfig({
     },
   },
 
-  reporter: "cypress-json",
+  reporter: "junit",
   reporterOptions: {
-    reportDir: "cypress/reports/json",
-    overwrite: false,
-    json: true
+    mochaFile: "cypress/reports/junit/results.xml",
+    toConsole: false
   }
 });

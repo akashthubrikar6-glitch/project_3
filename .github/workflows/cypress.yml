@@ -34,18 +34,61 @@ jobs:
         run: npm install
 
       - name: Run Smoke Tests
-        run: npx cypress run --env TAGS="@smoke" --reporter json --reporter-options reportDir=cypress/reports/json/smoke,reportFilename=results
+        run: npx cypress run --env TAGS="@smoke"
 
-      - name: Generate Allure Report for Smoke Tests
+      - name: Generate Cucumber HTML Report - Smoke
         if: always()
-        run: npx allure generate cypress/reports/json/smoke --clean -o cypress/reports/allure-report-smoke
+        run: |
+          node -e "
+          const reporter = require('cucumber-html-reporter');
+          const options = {
+            theme: 'bootstrap',
+            jsonFile: 'cypress/reports/cucumber-json/output.json',
+            output: 'cypress/reports/smoke-report.html',
+            reportSuiteAsScenarios: true,
+            launchReport: false,
+            metadata: { 'Test Environment': 'GitHub Actions', 'Report Type': 'Smoke Tests' }
+          };
+          reporter.generate(options);
+          "
 
-      - name: Upload Allure Smoke Report
+      - name: Generate Allure Report - Smoke
+        if: always()
+        run: npx allure generate cypress/reports/junit --clean -o cypress/reports/allure-smoke
+
+      - name: Upload Smoke Reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: allure-smoke-report
-          path: cypress/reports/allure-report-smoke
+          name: smoke-test-reports
+          path: |
+            cypress/reports/smoke-report.html
+            cypress/reports/allure-smoke
+
+      - name: Send Email - Smoke Tests Complete
+        uses: dawidd6/action-send-mail@v3
+        if: always()
+        with:
+          server_address: ${{ secrets.MAIL_SERVER }}
+          server_port: ${{ secrets.MAIL_PORT }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "🧪 Smoke Tests Complete - ${{ job.status }}"
+          to: ${{ secrets.TEAM_EMAILS }}
+          from: "Cypress CI Automation"
+          body: |
+            ✅ Smoke Tests Execution Report
+            
+            Status: ${{ job.status }}
+            Run ID: ${{ github.run_id }}
+            Branch: ${{ github.ref }}
+            Commit: ${{ github.sha }}
+            
+            📊 Reports Generated:
+            1. Cucumber HTML Report
+            2. Allure Professional Dashboard
+            
+            Both reports available in Artifacts!
 
   cypress-regression:
     name: Run Regression Tests
@@ -70,17 +113,60 @@ jobs:
         run: npm install
 
       - name: Run Regression Tests
-        run: npx cypress run --env TAGS="@regression" --reporter json --reporter-options reportDir=cypress/reports/json/regression,reportFilename=results
+        run: npx cypress run --env TAGS="@regression"
 
-      - name: Generate Allure Report for Regression Tests
+      - name: Generate Cucumber HTML Report - Regression
         if: always()
-        run: npx allure generate cypress/reports/json/regression --clean -o cypress/reports/allure-report-regression
+        run: |
+          node -e "
+          const reporter = require('cucumber-html-reporter');
+          const options = {
+            theme: 'bootstrap',
+            jsonFile: 'cypress/reports/cucumber-json/output.json',
+            output: 'cypress/reports/regression-report.html',
+            reportSuiteAsScenarios: true,
+            launchReport: false,
+            metadata: { 'Test Environment': 'GitHub Actions', 'Report Type': 'Regression Tests' }
+          };
+          reporter.generate(options);
+          "
 
-      - name: Upload Allure Regression Report
+      - name: Generate Allure Report - Regression
+        if: always()
+        run: npx allure generate cypress/reports/junit --clean -o cypress/reports/allure-regression
+
+      - name: Upload Regression Reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: allure-regression-report
-          path: cypress/reports/allure-report-regression
+          name: regression-test-reports
+          path: |
+            cypress/reports/regression-report.html
+            cypress/reports/allure-regression
+
+      - name: Send Email - Regression Tests Complete
+        uses: dawidd6/action-send-mail@v3
+        if: always()
+        with:
+          server_address: ${{ secrets.MAIL_SERVER }}
+          server_port: ${{ secrets.MAIL_PORT }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "🧪 Regression Tests Complete - ${{ job.status }}"
+          to: ${{ secrets.TEAM_EMAILS }}
+          from: "Cypress CI Automation"
+          body: |
+            ✅ Regression Tests Execution Report
+            
+            Status: ${{ job.status }}
+            Run ID: ${{ github.run_id }}
+            Branch: ${{ github.ref }}
+            Commit: ${{ github.sha }}
+            
+            📊 Reports Generated:
+            1. Cucumber HTML Report
+            2. Allure Professional Dashboard
+            
+            Both reports available in Artifacts!
 
 # Akash
