@@ -1,4 +1,5 @@
 const { defineConfig } = require("cypress");
+const allureWriter = require("@shelex/cypress-allure-plugin/writer");
 
 const createBundler = require("@bahmutov/cypress-esbuild-preprocessor");
 const addCucumberPreprocessorPlugin =
@@ -14,9 +15,8 @@ module.exports = defineConfig({
 
   e2e: {
     specPattern: "cypress/e2e/features/**/*.feature",
-
     async setupNodeEvents(on, config) {
-
+      allureWriter(on, config);
       await addCucumberPreprocessorPlugin(on, config);
 
       on(
@@ -28,12 +28,5 @@ module.exports = defineConfig({
 
       return config;
     },
-  },
-
-  reporter: "cypress-json",
-  reporterOptions: {
-    reportDir: "cypress/reports/json",
-    overwrite: false,
-    json: true
   }
 });
