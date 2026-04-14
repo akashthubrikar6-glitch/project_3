@@ -1,4 +1,5 @@
 const { defineConfig } = require("cypress");
+const allureWriter = require("@shelex/cypress-allure-plugin/writer");
 
 const createBundler = require("@bahmutov/cypress-esbuild-preprocessor");
 const addCucumberPreprocessorPlugin =
@@ -14,10 +15,9 @@ module.exports = defineConfig({
 
   e2e: {
     specPattern: "cypress/e2e/features/**/*.feature",
-
-    async setupNodeEvents(on, config) {
-
-      await addCucumberPreprocessorPlugin(on, config);
+    setupNodeEvents(on, config) {
+      allureWriter(on, config);
+      addCucumberPreprocessorPlugin(on, config);
 
       on(
         "file:preprocessor",
@@ -30,9 +30,20 @@ module.exports = defineConfig({
     },
   },
 
-  reporter: "junit",
+  reporter: "cypress-multi-reporters",
   reporterOptions: {
-    mochaFile: "cypress/reports/junit/results.xml",
-    toConsole: false
+    reporterEnabled: "cucumber-html-reporter",
+    cucumberHtmlReporterOptions: {
+      theme: "bootstrap",
+      jsonFile: "cypress/reports/cucumber-json/output.json",
+      output: "cypress/reports/cucumber-report.html",
+      reportSuiteAsScenarios: true,
+      launchReport: false,
+      metadata: {
+        "Test Environment": "GitHub Actions",
+        "Browser": "Chrome",
+        "Executed": "GitHub CI/CD"
+      }
+    }
   }
 });
