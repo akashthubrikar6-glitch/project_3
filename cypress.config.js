@@ -15,9 +15,9 @@ module.exports = defineConfig({
 
   e2e: {
     specPattern: "cypress/e2e/features/**/*.feature",
-    setupNodeEvents(on, config) {
+    async setupNodeEvents(on, config) {
       allureWriter(on, config);
-      addCucumberPreprocessorPlugin(on, config);
+      await addCucumberPreprocessorPlugin(on, config);
 
       on(
         "file:preprocessor",
