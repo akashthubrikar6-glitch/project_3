@@ -39,18 +39,24 @@ jobs:
       - name: Generate Cucumber HTML Report - Smoke
         if: always()
         run: |
-          node -e "
-          const reporter = require('cucumber-html-reporter');
-          const options = {
-            theme: 'bootstrap',
-            jsonFile: 'cypress/reports/cucumber-json/output.json',
-            output: 'cypress/reports/smoke-report.html',
-            reportSuiteAsScenarios: true,
-            launchReport: false,
-            metadata: { 'Test Environment': 'GitHub Actions', 'Report Type': 'Smoke Tests' }
-          };
-          reporter.generate(options);
-          "
+          mkdir -p cypress/reports/cucumber-json
+          if [ -f "cypress/reports/cucumber-json/output.json" ]; then
+            node -e "
+            const reporter = require('cucumber-html-reporter');
+            const options = {
+              theme: 'bootstrap',
+              jsonFile: 'cypress/reports/cucumber-json/output.json',
+              output: 'cypress/reports/smoke-report.html',
+              reportSuiteAsScenarios: true,
+              launchReport: false,
+              metadata: { 'Test Environment': 'GitHub Actions', 'Report Type': 'Smoke Tests' }
+            };
+            reporter.generate(options);
+            "
+          else
+            echo "Cucumber JSON not found, creating simple report..."
+            echo "<html><body><h1>Smoke Tests Report</h1><p>Report will be generated after tests run</p></body></html>" > cypress/reports/smoke-report.html
+          fi
 
       - name: Generate Allure Report - Smoke
         if: always()
@@ -119,18 +125,24 @@ jobs:
       - name: Generate Cucumber HTML Report - Regression
         if: always()
         run: |
-          node -e "
-          const reporter = require('cucumber-html-reporter');
-          const options = {
-            theme: 'bootstrap',
-            jsonFile: 'cypress/reports/cucumber-json/output.json',
-            output: 'cypress/reports/regression-report.html',
-            reportSuiteAsScenarios: true,
-            launchReport: false,
-            metadata: { 'Test Environment': 'GitHub Actions', 'Report Type': 'Regression Tests' }
-          };
-          reporter.generate(options);
-          "
+          mkdir -p cypress/reports/cucumber-json
+          if [ -f "cypress/reports/cucumber-json/output.json" ]; then
+            node -e "
+            const reporter = require('cucumber-html-reporter');
+            const options = {
+              theme: 'bootstrap',
+              jsonFile: 'cypress/reports/cucumber-json/output.json',
+              output: 'cypress/reports/regression-report.html',
+              reportSuiteAsScenarios: true,
+              launchReport: false,
+              metadata: { 'Test Environment': 'GitHub Actions', 'Report Type': 'Regression Tests' }
+            };
+            reporter.generate(options);
+            "
+          else
+            echo "Cucumber JSON not found, creating simple report..."
+            echo "<html><body><h1>Regression Tests Report</h1><p>Report will be generated after tests run</p></body></html>" > cypress/reports/regression-report.html
+          fi
 
       - name: Generate Allure Report - Regression
         if: always()
