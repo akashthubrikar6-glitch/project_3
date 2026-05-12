@@ -49,7 +49,7 @@ jobs:
           $history = Get-Content testTrendHistory.json | ConvertFrom-Json
           $latest = $history[-1]
           echo "total_tests=$($latest.totalTests)" >> $env:GITHUB_OUTPUT
-          echo "passed=$(${latest.passedTests})" >> $env:GITHUB_OUTPUT
+          echo "passed=$($latest.passedTests)" >> $env:GITHUB_OUTPUT
           echo "failed=$($latest.failedTests)" >> $env:GITHUB_OUTPUT
           echo "flaky=$($latest.flakyTests)" >> $env:GITHUB_OUTPUT
           echo "pass_rate=$($latest.passPercentage)" >> $env:GITHUB_OUTPUT
@@ -92,7 +92,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .
           include_dotfiles: true
-          cname: tests.example.com  # Change to your domain if needed
 
       # Create release with reports
       - name: 📦 Create release with reports
