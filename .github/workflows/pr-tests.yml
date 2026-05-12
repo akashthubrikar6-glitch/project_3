@@ -1,0 +1,103 @@
+name: 🧪 Pull Request Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: 🧪 Run Cypress Tests
+    runs-on: windows-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      # Checkout code
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+
+      # Setup Node.js
+      - name: 📦 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      # Install dependencies
+      - name: 📚 Install dependencies
+        run: npm ci
+
+      # Run Cypress tests
+      - name: 🚀 Run Cypress tests
+        run: npx cypress run --headless
+
+      # Generate reports
+      - name: 📊 Generate test reports
+        if: always()
+        run: |
+          node reportToExcel.js
+          node trendAnalysis.js
+
+      # Create dashboard
+      - name: 🎨 Create HTML dashboard
+        if: always()
+        run: node createDashboard.js
+
+      # Upload test results
+      - name: 📤 Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: |
+            TestResults.xlsx
+            TestTrends.xlsx
+            dashboard.html
+            cypress/reports/
+            testTrendHistory.json
+          retention-days: 30
+
+      # Comment on PR with results
+      - name: 💬 Comment PR with results
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const history = JSON.parse(fs.readFileSync('testTrendHistory.json', 'utf8'));
+            const latest = history[history.length - 1];
+            
+            const body = `
+            ## ✅ Test Results
+            
+            | Metric | Value |
+            |--------|-------|
+            | Total Tests | ${latest.totalTests} |
+            | ✅ Passed | ${latest.passedTests} |
+            | ❌ Failed | ${latest.failedTests} |
+            | ⚠️ Flaky | ${latest.flakyTests} |
+            | Pass Rate | ${latest.passPercentage}% |
+            | Duration | ${latest.totalDuration} |
+            
+            📊 [View Dashboard](file://${process.env.GITHUB_WORKSPACE}/dashboard.html)
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      # Fail if tests failed
+      - name: ❌ Fail if tests failed
+        if: failure()
+        run: exit 1

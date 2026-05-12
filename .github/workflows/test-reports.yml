@@ -1,0 +1,122 @@
+name: 📊 Test Reports & Analysis
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  schedule:
+    # Run tests every day at 9 AM UTC
+    - cron: '0 9 * * *'
+
+jobs:
+  test-and-report:
+    name: 📊 Generate Test Reports
+    runs-on: windows-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: 'npm'
+
+      - name: 📚 Install dependencies
+        run: npm ci
+
+      # Run Cypress tests with reporter
+      - name: 🧪 Run Cypress tests
+        run: npx cypress run --headless
+        continue-on-error: true
+
+      # Generate all reports
+      - name: 📋 Generate Excel reports
+        run: |
+          node reportToExcel.js
+          node trendAnalysis.js
+
+      - name: 🎨 Generate dashboard
+        run: node createDashboard.js
+
+      # Get test results for summary
+      - name: 📊 Parse test results
+        if: always()
+        id: results
+        run: |
+          $history = Get-Content testTrendHistory.json | ConvertFrom-Json
+          $latest = $history[-1]
+          echo "total_tests=$($latest.totalTests)" >> $env:GITHUB_OUTPUT
+          echo "passed=$(${latest.passedTests})" >> $env:GITHUB_OUTPUT
+          echo "failed=$($latest.failedTests)" >> $env:GITHUB_OUTPUT
+          echo "flaky=$($latest.flakyTests)" >> $env:GITHUB_OUTPUT
+          echo "pass_rate=$($latest.passPercentage)" >> $env:GITHUB_OUTPUT
+          echo "duration=$($latest.totalDuration)" >> $env:GITHUB_OUTPUT
+
+      # Create job summary
+      - name: 📝 Create job summary
+        if: always()
+        run: |
+          echo "## 🧪 Test Execution Summary" >> $env:GITHUB_STEP_SUMMARY
+          echo "" >> $env:GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $env:GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $env:GITHUB_STEP_SUMMARY
+          echo "| Total Tests | ${{ steps.results.outputs.total_tests }} |" >> $env:GITHUB_STEP_SUMMARY
+          echo "| ✅ Passed | ${{ steps.results.outputs.passed }} |" >> $env:GITHUB_STEP_SUMMARY
+          echo "| ❌ Failed | ${{ steps.results.outputs.failed }} |" >> $env:GITHUB_STEP_SUMMARY
+          echo "| ⚠️ Flaky | ${{ steps.results.outputs.flaky }} |" >> $env:GITHUB_STEP_SUMMARY
+          echo "| Pass Rate | ${{ steps.results.outputs.pass_rate }}% |" >> $env:GITHUB_STEP_SUMMARY
+          echo "| Duration | ${{ steps.results.outputs.duration }} |" >> $env:GITHUB_STEP_SUMMARY
+
+      # Upload artifacts
+      - name: 📤 Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports-${{ github.run_number }}
+          path: |
+            TestResults.xlsx
+            TestTrends.xlsx
+            dashboard.html
+            cypress/reports/
+            testTrendHistory.json
+          retention-days: 90
+
+      # Deploy reports to GitHub Pages (if enabled)
+      - name: 🚀 Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' && always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          include_dotfiles: true
+          cname: tests.example.com  # Change to your domain if needed
+
+      # Create release with reports
+      - name: 📦 Create release with reports
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: test-report-${{ github.run_number }}
+          release_name: Test Report - Run ${{ github.run_number }}
+          body: |
+            ## Automated Test Report
+            
+            **Run**: ${{ github.run_number }}
+            **Commit**: ${{ github.sha }}
+            **Branch**: ${{ github.ref }}
+            
+            ### Test Results
+            - Total Tests: ${{ steps.results.outputs.total_tests }}
+            - Passed: ${{ steps.results.outputs.passed }}
+            - Failed: ${{ steps.results.outputs.failed }}
+            - Flaky: ${{ steps.results.outputs.flaky }}
+            - Pass Rate: ${{ steps.results.outputs.pass_rate }}%
+            
+            📊 Check artifacts for detailed reports!
+          draft: false
+          prerelease: false

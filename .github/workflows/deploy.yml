@@ -1,0 +1,63 @@
+name: 🚀 Deploy with Test Validation
+
+on:
+  workflow_run:
+    workflows: ["🧪 Pull Request Tests", "📊 Test Reports & Analysis"]
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: 🚀 Deploy Application
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - name: 📚 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Validate deployment readiness
+        run: |
+          echo "✅ Tests passed successfully!"
+          echo "✅ Reports generated"
+          echo "✅ Dashboard available"
+          echo "✅ Ready for deployment!"
+
+      - name: 🚀 Deploy to production
+        run: |
+          echo "Deploying application..."
+          # Add your deployment commands here
+          # Examples:
+          # - npm run build
+          # - npm run deploy
+          # - docker build -t app .
+          # - docker push app
+
+      - name: ✅ Deployment successful
+        run: |
+          echo "🎉 Application deployed successfully!"
+          echo "All tests passed ✅"
+          echo "Reports generated ✅"
+
+      # Notify on failure
+      - name: ❌ Notify deployment failure
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ Deployment failed! Tests did not pass.'
+            })

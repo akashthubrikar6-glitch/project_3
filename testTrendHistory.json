@@ -1,0 +1,14 @@
+[
+  {
+    "timestamp": "2026-05-12T10:55:35.443Z",
+    "date": "12/5/2026",
+    "time": "4:25:35 pm",
+    "totalTests": 1,
+    "passedTests": 1,
+    "failedTests": 0,
+    "flakyTests": 0,
+    "passPercentage": "100.00",
+    "failPercentage": "0.00",
+    "totalDuration": "4.84s"
+  }
+]

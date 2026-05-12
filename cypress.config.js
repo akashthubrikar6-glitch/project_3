@@ -15,6 +15,14 @@ module.exports = defineConfig({
 
   e2e: {
     specPattern: "cypress/e2e/features/**/*.feature",
+    reporter: "mochawesome",
+    reporterOptions: {
+      reportDir: "cypress/reports",
+      reportFilename: "mochawesome",
+      overwrite: false,
+      html: true,
+      json: true,
+    },
     async setupNodeEvents(on, config) {
       allureWriter(on, config);
       await addCucumberPreprocessorPlugin(on, config);
