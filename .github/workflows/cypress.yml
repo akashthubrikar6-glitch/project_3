@@ -72,43 +72,21 @@ jobs:
             cypress/reports/smoke-report.html
             allure-report-smoke
 
-      - name: Send Email - Smoke Tests Report
-        uses: dawidd6/action-send-mail@v3
-        if: always()
-        with:
-          server_address: ${{ secrets.MAIL_SERVER }}
-          server_port: ${{ secrets.MAIL_PORT }}
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "🧪 Smoke Tests Report - ${{ job.status }}"
-          to: ${{ secrets.TO_EMAILS }}
-          from: "Cypress CI"
-          body: |
-            Smoke Tests Execution Report
-            
-            Status: ${{ job.status }}
-            Run ID: ${{ github.run_id }}
-            Branch: ${{ github.ref }}
-            Commit: ${{ github.sha }}
-            
-            Report attached!
-          attachments: cypress/reports/smoke-report.html
-
   cypress-regression:
     name: Run Regression Tests
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20.x
 
       - name: Cache node modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -154,27 +132,5 @@ jobs:
           path: |
             cypress/reports/regression-report.html
             allure-report-regression
-
-      - name: Send Email - Regression Tests Report
-        uses: dawidd6/action-send-mail@v3
-        if: always()
-        with:
-          server_address: ${{ secrets.MAIL_SERVER }}
-          server_port: ${{ secrets.MAIL_PORT }}
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "🧪 Regression Tests Report - ${{ job.status }}"
-          to: ${{ secrets.TO_EMAILS }}
-          from: "Cypress CI"
-          body: |
-            Regression Tests Execution Report
-            
-            Status: ${{ job.status }}
-            Run ID: ${{ github.run_id }}
-            Branch: ${{ github.ref }}
-            Commit: ${{ github.sha }}
-            
-            Report attached!
-          attachments: cypress/reports/regression-report.html
 
 # Akash
