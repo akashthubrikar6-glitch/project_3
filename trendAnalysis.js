@@ -8,6 +8,24 @@ const REPORT_FILE = 'TestTrends.xlsx';
 // Read current test results
 function getCurrentResults() {
   const reportPath = 'cypress/reports/mochawesome.json';
+  
+  // Check if report file exists
+  if (!fs.existsSync(reportPath)) {
+    console.warn(`⚠️  No test report found at ${reportPath}`);
+    return {
+      timestamp: new Date().toISOString(),
+      date: new Date().toLocaleDateString('en-IN'),
+      time: new Date().toLocaleTimeString('en-IN'),
+      totalTests: 0,
+      passedTests: 0,
+      failedTests: 0,
+      flakyTests: 0,
+      passPercentage: '0.00',
+      failPercentage: '0.00',
+      totalDuration: '0s'
+    };
+  }
+  
   const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
   
   let totalTests = 0;
@@ -183,42 +201,47 @@ function createTrendReport(history) {
 
 // Main execution
 function main() {
-  console.log('📊 Analyzing test trends...\n');
-  
-  const currentResults = getCurrentResults();
-  console.log('Current Run Results:');
-  console.log(`  Total Tests: ${currentResults.totalTests}`);
-  console.log(`  Passed: ${currentResults.passedTests} (${currentResults.passPercentage}%)`);
-  console.log(`  Failed: ${currentResults.failedTests} (${currentResults.failPercentage}%)`);
-  console.log(`  Flaky: ${currentResults.flakyTests}`);
-  console.log(`  Duration: ${currentResults.totalDuration}\n`);
-  
-  let history = loadHistory();
-  history.push(currentResults);
-  saveHistory(history);
-  
-  const trends = generateTrends(history);
-  
-  if (trends.improvement) {
-    console.log('📈 Comparison with Previous Run:');
-    console.log(`  Pass Rate: ${trends.improvement.passRate}`);
-    console.log(`  Fail Rate Reduction: ${trends.improvement.failReduction}\n`);
-  }
-  
-  console.log('📊 Overall Statistics:');
-  console.log(`  Average Pass Rate: ${trends.stats.avgPassRate}%`);
-  console.log(`  Total Runs Tracked: ${trends.stats.totalRuns}`);
-  console.log(`  Best Pass Rate: ${trends.stats.bestPassRate}%`);
-  console.log(`  Worst Pass Rate: ${trends.stats.worstPassRate}%\n`);
-  
-  createTrendReport(history);
-  
-  // Generate dashboard
-  const { execSync } = require('child_process');
   try {
-    execSync('node createDashboard.js', { stdio: 'inherit' });
+    console.log('📊 Analyzing test trends...\n');
+    
+    const currentResults = getCurrentResults();
+    console.log('Current Run Results:');
+    console.log(`  Total Tests: ${currentResults.totalTests}`);
+    console.log(`  Passed: ${currentResults.passedTests} (${currentResults.passPercentage}%)`);
+    console.log(`  Failed: ${currentResults.failedTests} (${currentResults.failPercentage}%)`);
+    console.log(`  Flaky: ${currentResults.flakyTests}`);
+    console.log(`  Duration: ${currentResults.totalDuration}\n`);
+    
+    let history = loadHistory();
+    history.push(currentResults);
+    saveHistory(history);
+    
+    const trends = generateTrends(history);
+    
+    if (trends && trends.improvement) {
+      console.log('📈 Comparison with Previous Run:');
+      console.log(`  Pass Rate: ${trends.improvement.passRate}`);
+      console.log(`  Fail Rate Reduction: ${trends.improvement.failReduction}\n`);
+    }
+    
+    console.log('📊 Overall Statistics:');
+    console.log(`  Average Pass Rate: ${trends?.stats?.avgPassRate || '0'}%`);
+    console.log(`  Total Runs Tracked: ${trends?.stats?.totalRuns || '0'}`);
+    console.log(`  Best Pass Rate: ${trends?.stats?.bestPassRate || '0'}%`);
+    console.log(`  Worst Pass Rate: ${trends?.stats?.worstPassRate || '0'}%\n`);
+    
+    createTrendReport(history);
+    
+    // Generate dashboard
+    const { execSync } = require('child_process');
+    try {
+      execSync('node createDashboard.js', { stdio: 'inherit' });
+    } catch (error) {
+      console.log('⚠️  Dashboard generation skipped');
+    }
   } catch (error) {
-    console.log('⚠️  Dashboard generation skipped');
+    console.error('❌ Error in trend analysis:', error.message);
+    console.log('Continuing despite error...');
   }
 }
 

@@ -7,12 +7,46 @@ function generateDashboard() {
   // Read history
   let history = [];
   if (fs.existsSync(HISTORY_FILE)) {
-    history = JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf8'));
+    try {
+      history = JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf8'));
+    } catch (error) {
+      console.warn('⚠️  Could not parse history file');
+      history = [];
+    }
   }
 
   if (history.length === 0) {
-    console.log('❌ No history data found. Run tests first!');
-    process.exit(1);
+    console.log('ℹ️  No history data yet. Creating empty dashboard...');
+    // Create empty dashboard placeholder
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Trend Dashboard</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      text-align: center;
+    }
+    .container { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    h1 { color: #333; margin-bottom: 20px; }
+    p { color: #666; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Test Trend Dashboard</h1>
+    <p>No test data available yet.</p>
+    <p>Run tests to generate the dashboard.</p>
+  </div>
+</body>
+</html>`;
+    fs.writeFileSync('dashboard.html', html);
+    console.log('✓ Empty dashboard created: dashboard.html');
+    return;
   }
 
   // Prepare data for charts
@@ -517,4 +551,14 @@ function generateDashboard() {
   console.log('🌐 Open in browser: dashboard.html');
 }
 
-generateDashboard();
+try {
+  generateDashboard();
+} catch (error) {
+  console.error('❌ Dashboard generation failed:', error.message);
+  console.log('Creating fallback empty dashboard...');
+  const fallback = `<!DOCTYPE html>
+<html><head><title>Dashboard</title></head>
+<body><p>Dashboard generation failed. Please check logs.</p></body>
+</html>`;
+  fs.writeFileSync('dashboard.html', fallback);
+}

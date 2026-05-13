@@ -46,14 +46,23 @@ jobs:
         if: always()
         id: results
         run: |
-          $history = Get-Content testTrendHistory.json | ConvertFrom-Json
-          $latest = $history[-1]
-          echo "total_tests=$($latest.totalTests)" >> $env:GITHUB_OUTPUT
-          echo "passed=$($latest.passedTests)" >> $env:GITHUB_OUTPUT
-          echo "failed=$($latest.failedTests)" >> $env:GITHUB_OUTPUT
-          echo "flaky=$($latest.flakyTests)" >> $env:GITHUB_OUTPUT
-          echo "pass_rate=$($latest.passPercentage)" >> $env:GITHUB_OUTPUT
-          echo "duration=$($latest.totalDuration)" >> $env:GITHUB_OUTPUT
+          if (Test-Path testTrendHistory.json) {
+            $history = Get-Content testTrendHistory.json | ConvertFrom-Json
+            $latest = $history[-1]
+            echo "total_tests=$($latest.totalTests)" >> $env:GITHUB_OUTPUT
+            echo "passed=$($latest.passedTests)" >> $env:GITHUB_OUTPUT
+            echo "failed=$($latest.failedTests)" >> $env:GITHUB_OUTPUT
+            echo "flaky=$($latest.flakyTests)" >> $env:GITHUB_OUTPUT
+            echo "pass_rate=$($latest.passPercentage)" >> $env:GITHUB_OUTPUT
+            echo "duration=$($latest.totalDuration)" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "total_tests=0" >> $env:GITHUB_OUTPUT
+            echo "passed=0" >> $env:GITHUB_OUTPUT
+            echo "failed=0" >> $env:GITHUB_OUTPUT
+            echo "flaky=0" >> $env:GITHUB_OUTPUT
+            echo "pass_rate=0" >> $env:GITHUB_OUTPUT
+            echo "duration=0s" >> $env:GITHUB_OUTPUT
+          }
 
       # Create job summary
       - name: 📝 Create job summary
