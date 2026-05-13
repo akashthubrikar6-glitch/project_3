@@ -97,6 +97,7 @@ jobs:
       - name: 🚀 Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main' && always()
         uses: peaceiris/actions-gh-pages@v3
+        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .
@@ -106,6 +107,7 @@ jobs:
       - name: 📦 Create release with reports
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/create-release@v1
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
