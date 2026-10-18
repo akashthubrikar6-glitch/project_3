@@ -63,7 +63,7 @@ jobs:
           echo "- Summary: history/monthly-summary.json" >> $GITHUB_STEP_SUMMARY
 
       - name: Send monthly regression report email
-        if: always() && secrets.SMTP_SERVER != ''
+        if: ${{ always() && secrets.SMTP_SERVER != '' }}
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: ${{ secrets.SMTP_SERVER }}
