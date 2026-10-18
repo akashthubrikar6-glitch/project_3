@@ -31,6 +31,17 @@ jobs:
         continue-on-error: true
         run: npx cypress run --headless --env TAGS=@regression
 
+      - name: Restore previous regression history
+        if: always()
+        continue-on-error: true
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: monthly-regression-report.yml
+          branch: main
+          name: regression-history
+          path: ./history
+          if_no_artifact_found: warn
+
       - name: Save run history
         if: always()
         run: |
@@ -43,6 +54,14 @@ jobs:
         run: |
           echo "Generated files:"
           ls -R history
+
+      - name: Upload regression history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-history
+          path: ./history/regression-history.json
+          retention-days: 365
 
       - name: Upload monthly report artifact
         if: always()
