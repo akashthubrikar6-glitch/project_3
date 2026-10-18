@@ -103,20 +103,52 @@ function buildMonthlySummary() {
     const month = entry.month || entry.date?.slice(0, 7) || 'unknown';
 
     if (!grouped[month]) {
-      grouped[month] = { month, passed: 0, failed: 0, skipped: 0, totalRuns: 0 };
+      grouped[month] = {
+        month,
+        passed: 0,
+        failed: 0,
+        skipped: 0,
+        totalRuns: 0,
+        runs: []
+      };
     }
 
-    grouped[month].passed += Number(entry.passed || 0);
-    grouped[month].failed += Number(entry.failed || 0);
-    grouped[month].skipped += Number(entry.skipped || 0);
+    const runEntry = {
+      date: entry.date,
+      total: Number(entry.total || 0),
+      passed: Number(entry.passed || 0),
+      failed: Number(entry.failed || 0),
+      skipped: Number(entry.skipped || 0),
+      passRate: Number(entry.passRate || 0),
+      runType: entry.runType || 'regression'
+    };
+
+    grouped[month].runs.push(runEntry);
+    grouped[month].passed += runEntry.passed;
+    grouped[month].failed += runEntry.failed;
+    grouped[month].skipped += runEntry.skipped;
     grouped[month].totalRuns += 1;
   });
 
-  const summary = Object.values(grouped).map((m) => ({
-    ...m,
-    total: m.passed + m.failed + m.skipped,
-    passRate: m.total ? ((m.passed / (m.passed + m.failed + m.skipped)) * 100).toFixed(2) : '0.00'
-  }));
+  const summary = Object.values(grouped)
+    .map((m) => {
+      const total = m.passed + m.failed + m.skipped;
+      const passRate = total ? ((m.passed / total) * 100).toFixed(2) : '0.00';
+
+      return {
+        month: m.month,
+        passed: m.passed,
+        failed: m.failed,
+        skipped: m.skipped,
+        totalRuns: m.totalRuns,
+        total,
+        passRate,
+        runs: m.runs
+          .slice()
+          .sort((a, b) => new Date(a.date) - new Date(b.date))
+      };
+    })
+    .sort((a, b) => a.month.localeCompare(b.month));
 
   fs.writeFileSync(summaryFile, JSON.stringify(summary, null, 2));
   console.log(`Monthly summary saved to ${summaryFile}`);

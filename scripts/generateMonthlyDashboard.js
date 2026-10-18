@@ -49,6 +49,22 @@ function buildDashboard(summary) {
     `)
     .join('');
 
+  const runHistoryRows = summary
+    .flatMap((item) => item.runs || [])
+    .slice()
+    .reverse()
+    .map((run) => `
+      <tr>
+        <td>${new Date(run.date).toLocaleString()}</td>
+        <td>${run.total}</td>
+        <td>${run.passed}</td>
+        <td>${run.failed}</td>
+        <td>${run.skipped}</td>
+        <td>${run.passRate}%</td>
+      </tr>
+    `)
+    .join('');
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -189,6 +205,25 @@ function buildDashboard(summary) {
         </thead>
         <tbody>
           ${tableRows}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Run-by-Run History</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Run Date</th>
+            <th>Total</th>
+            <th>Passed</th>
+            <th>Failed</th>
+            <th>Skipped</th>
+            <th>Pass Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${runHistoryRows || '<tr><td colspan="6">No run history available.</td></tr>'}
         </tbody>
       </table>
     </div>
