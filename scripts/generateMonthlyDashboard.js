@@ -17,9 +17,11 @@ function readSummary() {
 function buildDashboard(summary) {
   const latestMonth = summary[summary.length - 1] || {
     month: 'No Data',
+    totalCases: 0,
     passed: 0,
     failed: 0,
     skipped: 0,
+    flaky: 0,
     total: 0,
     passRate: 0
   };
@@ -28,11 +30,12 @@ function buildDashboard(summary) {
   const passSeries = summary.map((item) => Number(item.passed || 0));
   const failSeries = summary.map((item) => Number(item.failed || 0));
 
-  const pieLabels = ['Passed', 'Failed', 'Skipped'];
+  const pieLabels = ['Passed', 'Failed', 'Skipped', 'Flaky'];
   const pieData = [
     Number(latestMonth.passed || 0),
     Number(latestMonth.failed || 0),
     Number(latestMonth.skipped || 0),
+    Number(latestMonth.flaky || 0),
   ];
 
   const tableRows = summary
@@ -56,11 +59,12 @@ function buildDashboard(summary) {
     .map((run) => `
       <tr>
         <td>${new Date(run.date).toLocaleString()}</td>
-        <td>${run.total}</td>
-        <td>${run.passed}</td>
-        <td>${run.failed}</td>
-        <td>${run.skipped}</td>
-        <td>${run.passRate}%</td>
+        <td>${run.total || 0}</td>
+        <td>${run.passed || 0}</td>
+        <td>${run.failed || 0}</td>
+        <td>${run.skipped || 0}</td>
+        <td>${run.flaky || 0}</td>
+        <td>${run.passRate || 0}%</td>
       </tr>
     `)
     .join('');
@@ -170,10 +174,11 @@ function buildDashboard(summary) {
     <div class="grid">
       <div class="card">
         <h2>Latest Month Snapshot</h2>
-        <div class="summary-box"><span>Total</span><strong>${latestMonth.total}</strong></div>
+        <div class="summary-box"><span>Total Test Cases</span><strong>${latestMonth.totalCases || latestMonth.total || 0}</strong></div>
         <div class="summary-box"><span>Passed</span><strong>${latestMonth.passed}</strong></div>
         <div class="summary-box"><span>Failed</span><strong>${latestMonth.failed}</strong></div>
         <div class="summary-box"><span>Skipped</span><strong>${latestMonth.skipped}</strong></div>
+        <div class="summary-box"><span>Flaky</span><strong>${latestMonth.flaky || 0}</strong></div>
       </div>
 
       <div class="card">
@@ -197,9 +202,11 @@ function buildDashboard(summary) {
         <thead>
           <tr>
             <th>Month</th>
+            <th>Total Cases</th>
             <th>Passed</th>
             <th>Failed</th>
             <th>Skipped</th>
+            <th>Flaky</th>
             <th>Pass Rate</th>
           </tr>
         </thead>
@@ -215,15 +222,16 @@ function buildDashboard(summary) {
         <thead>
           <tr>
             <th>Run Date</th>
-            <th>Total</th>
+            <th>Total Cases</th>
             <th>Passed</th>
             <th>Failed</th>
             <th>Skipped</th>
+            <th>Flaky</th>
             <th>Pass Rate</th>
           </tr>
         </thead>
         <tbody>
-          ${runHistoryRows || '<tr><td colspan="6">No run history available.</td></tr>'}
+          ${runHistoryRows || '<tr><td colspan="7">No run history available.</td></tr>'}
         </tbody>
       </table>
     </div>

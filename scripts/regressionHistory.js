@@ -108,6 +108,7 @@ function buildMonthlySummary() {
         passed: 0,
         failed: 0,
         skipped: 0,
+        flaky: 0,
         totalRuns: 0,
         runs: []
       };
@@ -119,6 +120,7 @@ function buildMonthlySummary() {
       passed: Number(entry.passed || 0),
       failed: Number(entry.failed || 0),
       skipped: Number(entry.skipped || 0),
+      flaky: Number(entry.flaky || 0),
       passRate: Number(entry.passRate || 0),
       runType: entry.runType || 'regression'
     };
@@ -127,6 +129,7 @@ function buildMonthlySummary() {
     grouped[month].passed += runEntry.passed;
     grouped[month].failed += runEntry.failed;
     grouped[month].skipped += runEntry.skipped;
+    grouped[month].flaky += runEntry.flaky;
     grouped[month].totalRuns += 1;
   });
 
@@ -137,9 +140,11 @@ function buildMonthlySummary() {
 
       return {
         month: m.month,
+        totalCases: total,
         passed: m.passed,
         failed: m.failed,
         skipped: m.skipped,
+        flaky: m.flaky,
         totalRuns: m.totalRuns,
         total,
         passRate,
