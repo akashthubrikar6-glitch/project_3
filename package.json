@@ -7,6 +7,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "cy:smoke": "cypress run --env TAGS=@smoke",
     "cy:regression": "cypress run --env TAGS=@regression",
+    "cy:regression:history": "cypress run --env TAGS=@regression && node scripts/regressionHistory.js",
+    "regression:history": "node scripts/regressionHistory.js",
+    "regression:monthly": "node scripts/regressionHistory.js --summary",
+    "regression:pie": "node scripts/generateMonthlyPieChart.js",
+    "regression:dashboard": "node scripts/generateMonthlyDashboard.js",
     "cy:all": "cypress run --env TAGS='@smoke or @regression'"
   },
   "keywords": [],

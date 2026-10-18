@@ -1,0 +1,90 @@
+name: 📈 Monthly Regression Report
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 9 * * 1-5'
+
+jobs:
+  regression-report:
+    name: Build monthly regression dashboard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run regression suite
+        id: regression
+        continue-on-error: true
+        run: npx cypress run --headless --env TAGS=@regression
+
+      - name: Save run history
+        if: always()
+        run: |
+          node scripts/regressionHistory.js
+          node scripts/regressionHistory.js --summary
+          node scripts/generateMonthlyDashboard.js
+
+      - name: Show summary files
+        if: always()
+        run: |
+          echo "Generated files:"
+          ls -R history
+
+      - name: Upload monthly report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monthly-regression-report
+          path: ./history
+          retention-days: 90
+
+      - name: Add job summary
+        if: always()
+        run: |
+          echo "## Monthly Regression Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Workflow run: $GITHUB_RUN_NUMBER" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: $GITHUB_REF_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "- Dashboard: history/monthly-dashboard.html" >> $GITHUB_STEP_SUMMARY
+          echo "- Summary: history/monthly-summary.json" >> $GITHUB_STEP_SUMMARY
+
+      - name: Send monthly regression report email
+        if: always() && secrets.SMTP_SERVER != ''
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: Monthly Regression Report - Run ${{ github.run_number }}
+          to: akashthubrikar6@gmail.com
+          from: GitHub Actions <${{ secrets.SMTP_FROM }}>
+          content_type: text/html
+          body: |
+            <h2>Monthly Regression Report</h2>
+            <p>Workflow run: <strong>${{ github.run_number }}</strong></p>
+            <p>Branch: <strong>${{ github.ref_name }}</strong></p>
+            <p>Repository: <strong>${{ github.repository }}</strong></p>
+            <p>Artifact is attached with the generated dashboard and summary for this month.</p>
+            <p>GitHub Actions run: <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">Open run</a></p>
+          attachments: |
+            history/monthly-dashboard.html,
+            history/monthly-summary.json
+
+      - name: Fail job if regression tests failed
+        if: steps.regression.outcome == 'failure'
+        run: exit 1
