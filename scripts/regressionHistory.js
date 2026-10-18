@@ -23,6 +23,7 @@ function getRunSummaryFromMochawesome() {
   let failed = 0;
   let skipped = 0;
   let total = 0;
+  const features = new Set();
 
   if (!report || !report.results) {
     return null;
@@ -33,6 +34,9 @@ function getRunSummaryFromMochawesome() {
 
     spec.suites.forEach((suite) => {
       if (!suite || !suite.tests) return;
+
+      const featureName = suite.title || 'Unknown Feature';
+      if (featureName) features.add(featureName);
 
       suite.tests.forEach((test) => {
         total += 1;
@@ -45,12 +49,17 @@ function getRunSummaryFromMochawesome() {
     });
   });
 
+  const tagValue = (process.env.TAGS || '').toLowerCase();
+  const tag = tagValue.includes('@smoke') ? 'smoke' : tagValue.includes('@regression') ? 'regression' : 'all';
+
   return {
     total,
     passed,
     failed,
     skipped,
-    passRate: total ? ((passed / total) * 100).toFixed(2) : '0.00'
+    passRate: total ? ((passed / total) * 100).toFixed(2) : '0.00',
+    tag,
+    features: Array.from(features)
   };
 }
 
@@ -71,8 +80,11 @@ function appendRun() {
     passed: summary.passed,
     failed: summary.failed,
     skipped: summary.skipped,
+    flaky: 0,
     passRate: Number(summary.passRate),
-    runType: 'regression'
+    tag: summary.tag,
+    features: summary.features || [],
+    runType: summary.tag || 'regression'
   };
 
   let history = [];

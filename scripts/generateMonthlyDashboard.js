@@ -59,6 +59,8 @@ function buildDashboard(summary) {
     .map((run) => `
       <tr>
         <td>${new Date(run.date).toLocaleString()}</td>
+        <td>${run.tag || 'all'}</td>
+        <td>${(run.features || []).join(', ') || 'N/A'}</td>
         <td>${run.total || 0}</td>
         <td>${run.passed || 0}</td>
         <td>${run.failed || 0}</td>
@@ -222,6 +224,8 @@ function buildDashboard(summary) {
         <thead>
           <tr>
             <th>Run Date</th>
+            <th>Tag</th>
+            <th>Feature(s)</th>
             <th>Total Cases</th>
             <th>Passed</th>
             <th>Failed</th>
@@ -231,7 +235,7 @@ function buildDashboard(summary) {
           </tr>
         </thead>
         <tbody>
-          ${runHistoryRows || '<tr><td colspan="7">No run history available.</td></tr>'}
+          ${runHistoryRows || '<tr><td colspan="9">No run history available.</td></tr>'}
         </tbody>
       </table>
     </div>
