@@ -63,16 +63,22 @@ jobs:
           echo "- Summary: history/monthly-summary.json" >> $GITHUB_STEP_SUMMARY
 
       - name: Send monthly regression report email
-        if: ${{ always() && secrets.SMTP_SERVER != '' }}
+        env:
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+        if: ${{ always() && env.SMTP_SERVER != '' && env.SMTP_PORT != '' && env.SMTP_USERNAME != '' && env.SMTP_PASSWORD != '' && env.SMTP_FROM != '' }}
         uses: dawidd6/action-send-mail@v3
         with:
-          server_address: ${{ secrets.SMTP_SERVER }}
-          server_port: ${{ secrets.SMTP_PORT }}
-          username: ${{ secrets.SMTP_USERNAME }}
-          password: ${{ secrets.SMTP_PASSWORD }}
+          server_address: ${{ env.SMTP_SERVER }}
+          server_port: ${{ env.SMTP_PORT }}
+          username: ${{ env.SMTP_USERNAME }}
+          password: ${{ env.SMTP_PASSWORD }}
           subject: Monthly Regression Report - Run ${{ github.run_number }}
           to: akashthubrikar6@gmail.com
-          from: GitHub Actions <${{ secrets.SMTP_FROM }}>
+          from: GitHub Actions <${{ env.SMTP_FROM }}>
           content_type: text/html
           body: |
             <h2>Monthly Regression Report</h2>
