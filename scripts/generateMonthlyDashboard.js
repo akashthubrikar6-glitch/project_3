@@ -44,10 +44,12 @@ function buildDashboard(summary) {
     .map((item) => `
       <tr>
         <td>${item.month}</td>
-        <td>${item.passed}</td>
-        <td>${item.failed}</td>
-        <td>${item.skipped}</td>
-        <td>${item.passRate}%</td>
+        <td>${item.totalCases || item.total || 0}</td>
+        <td>${item.passed || 0}</td>
+        <td>${item.failed || 0}</td>
+        <td>${item.skipped || 0}</td>
+        <td>${item.flaky || 0}</td>
+        <td>${item.passRate || 0}%</td>
       </tr>
     `)
     .join('');
@@ -249,7 +251,7 @@ function buildDashboard(summary) {
         labels: ${JSON.stringify(pieLabels)},
         datasets: [{
           data: ${JSON.stringify(pieData)},
-          backgroundColor: ['#22c55e', '#ef4444', '#f59e0b']
+          backgroundColor: ['#22c55e', '#ef4444', '#f59e0b', '#3b82f6']
         }]
       },
       options: {
