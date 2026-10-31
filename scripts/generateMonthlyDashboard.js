@@ -23,7 +23,23 @@ function buildDashboard(summary) {
     skipped: 0,
     flaky: 0,
     total: 0,
-    passRate: 0
+    passRate: 0,
+    tagBreakdown: {}
+  };
+
+  const regressionStats = latestMonth.tagBreakdown?.regression || {
+    total: 0,
+    passed: 0,
+    failed: 0,
+    skipped: 0,
+    flaky: 0
+  };
+  const smokeStats = latestMonth.tagBreakdown?.smoke || {
+    total: 0,
+    passed: 0,
+    failed: 0,
+    skipped: 0,
+    flaky: 0
   };
 
   const labels = summary.map((item) => item.month);
@@ -183,6 +199,16 @@ function buildDashboard(summary) {
         <div class="summary-box"><span>Failed</span><strong>${latestMonth.failed}</strong></div>
         <div class="summary-box"><span>Skipped</span><strong>${latestMonth.skipped}</strong></div>
         <div class="summary-box"><span>Flaky</span><strong>${latestMonth.flaky || 0}</strong></div>
+
+        <div style="margin-top:18px; padding-top:12px; border-top:1px solid #e5e7eb;">
+          <h3 style="margin:0 0 10px 0; font-size:16px;">Regression vs Smoke</h3>
+          <div class="summary-box"><span>Regression Total</span><strong>${regressionStats.total || 0}</strong></div>
+          <div class="summary-box"><span>Regression Passed</span><strong>${regressionStats.passed || 0}</strong></div>
+          <div class="summary-box"><span>Regression Failed</span><strong>${regressionStats.failed || 0}</strong></div>
+          <div class="summary-box"><span>Smoke Total</span><strong>${smokeStats.total || 0}</strong></div>
+          <div class="summary-box"><span>Smoke Passed</span><strong>${smokeStats.passed || 0}</strong></div>
+          <div class="summary-box"><span>Smoke Failed</span><strong>${smokeStats.failed || 0}</strong></div>
+        </div>
       </div>
 
       <div class="card">

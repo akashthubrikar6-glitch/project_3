@@ -113,6 +113,7 @@ function buildMonthlySummary() {
 
   history.forEach((entry) => {
     const month = entry.month || entry.date?.slice(0, 7) || 'unknown';
+    const tag = (entry.tag || entry.runType || 'all').toLowerCase();
 
     if (!grouped[month]) {
       grouped[month] = {
@@ -122,7 +123,19 @@ function buildMonthlySummary() {
         skipped: 0,
         flaky: 0,
         totalRuns: 0,
+        tagBreakdown: {},
         runs: []
+      };
+    }
+
+    if (!grouped[month].tagBreakdown[tag]) {
+      grouped[month].tagBreakdown[tag] = {
+        tag,
+        total: 0,
+        passed: 0,
+        failed: 0,
+        skipped: 0,
+        flaky: 0
       };
     }
 
@@ -134,7 +147,9 @@ function buildMonthlySummary() {
       skipped: Number(entry.skipped || 0),
       flaky: Number(entry.flaky || 0),
       passRate: Number(entry.passRate || 0),
-      runType: entry.runType || 'regression'
+      runType: entry.runType || 'regression',
+      tag: entry.tag || entry.runType || 'all',
+      features: Array.isArray(entry.features) ? entry.features : []
     };
 
     grouped[month].runs.push(runEntry);
@@ -143,6 +158,12 @@ function buildMonthlySummary() {
     grouped[month].skipped += runEntry.skipped;
     grouped[month].flaky += runEntry.flaky;
     grouped[month].totalRuns += 1;
+
+    grouped[month].tagBreakdown[tag].total += runEntry.total;
+    grouped[month].tagBreakdown[tag].passed += runEntry.passed;
+    grouped[month].tagBreakdown[tag].failed += runEntry.failed;
+    grouped[month].tagBreakdown[tag].skipped += runEntry.skipped;
+    grouped[month].tagBreakdown[tag].flaky += runEntry.flaky;
   });
 
   const summary = Object.values(grouped)
@@ -160,6 +181,7 @@ function buildMonthlySummary() {
         totalRuns: m.totalRuns,
         total,
         passRate,
+        tagBreakdown: m.tagBreakdown || {},
         runs: m.runs
           .slice()
           .sort((a, b) => new Date(a.date) - new Date(b.date))
