@@ -58,6 +58,8 @@ jobs:
 
       - name: Save run history
         if: always()
+        env:
+          TAGS: '@regression'
         run: |
           node scripts/regressionHistory.js
           node scripts/regressionHistory.js --summary

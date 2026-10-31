@@ -181,6 +181,8 @@ In workflow run page, scroll down to see:
 - Execution time
 - Dashboard link
 
+The monthly regression dashboard counts scenarios tagged `@regression` from the Cucumber JSON report. It shows scenario pass/fail totals separately from pipeline runs; older history entries without scenario-level Cucumber data are marked "Not tracked" instead of being counted as test cases.
+
 ### Regression run details
 The `monthly-regression-report.yml` workflow adds a per-run summary to the GitHub Actions job page with:
 - Run start time (UTC), total duration, and passed/failed/skipped scenario counts

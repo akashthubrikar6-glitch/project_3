@@ -43,48 +43,65 @@ function buildDashboard(summary) {
   };
 
   const labels = summary.map((item) => item.month);
-  const passSeries = summary.map((item) => Number(item.passed || 0));
-  const failSeries = summary.map((item) => Number(item.failed || 0));
+  const regressionSeries = summary.map((item) => item.tagBreakdown?.regression || {});
+  const passSeries = regressionSeries.map((stats) => Number(stats.passed || 0));
+  const failSeries = regressionSeries.map((stats) => Number(stats.failed || 0));
+  const regressionTotal = Number(regressionStats.total || 0);
+  const regressionPassRate = regressionTotal
+    ? ((Number(regressionStats.passed || 0) / regressionTotal) * 100).toFixed(2)
+    : '0.00';
 
   const pieLabels = ['Passed', 'Failed', 'Skipped', 'Flaky'];
   const pieData = [
-    Number(latestMonth.passed || 0),
-    Number(latestMonth.failed || 0),
-    Number(latestMonth.skipped || 0),
-    Number(latestMonth.flaky || 0),
+    Number(regressionStats.passed || 0),
+    Number(regressionStats.failed || 0),
+    Number(regressionStats.skipped || 0),
+    Number(regressionStats.flaky || 0),
   ];
 
   const tableRows = summary
     .slice()
     .reverse()
-    .map((item) => `
-      <tr>
-        <td>${item.month}</td>
-        <td>${item.totalCases || item.total || 0}</td>
-        <td>${item.passed || 0}</td>
-        <td>${item.failed || 0}</td>
-        <td>${item.skipped || 0}</td>
-        <td>${item.flaky || 0}</td>
-        <td>${item.passRate || 0}%</td>
-      </tr>
-    `)
+    .map((item) => {
+      const stats = item.tagBreakdown?.regression || {};
+      if (!Number(item.scenarioRuns || 0)) {
+        return `
+          <tr>
+            <td>${item.month}</td>
+            <td colspan="5">Not tracked - no scenario-level Cucumber results for this month</td>
+          </tr>
+        `;
+      }
+
+      const total = Number(stats.total || 0);
+      const passRate = total ? ((Number(stats.passed || 0) / total) * 100).toFixed(2) : '0.00';
+      return `
+        <tr>
+          <td>${item.month}</td>
+          <td>${total}</td>
+          <td>${Number(stats.passed || 0)}</td>
+          <td>${Number(stats.failed || 0)}</td>
+          <td>${Number(stats.skipped || 0)}</td>
+          <td>${passRate}%</td>
+        </tr>
+      `;
+    })
     .join('');
 
   const runHistoryRows = summary
     .flatMap((item) => item.runs || [])
+    .filter((run) => run.tag === 'regression')
     .slice()
     .reverse()
     .map((run) => `
       <tr>
         <td>${new Date(run.date).toLocaleString()}</td>
-        <td>${run.tag || 'all'}</td>
         <td>${(run.features || []).join(', ') || 'N/A'}</td>
-        <td>${run.total || 0}</td>
-        <td>${run.passed || 0}</td>
-        <td>${run.failed || 0}</td>
-        <td>${run.skipped || 0}</td>
-        <td>${run.flaky || 0}</td>
-        <td>${run.passRate || 0}%</td>
+        <td>${run.total == null ? 'Not tracked' : run.total}</td>
+        <td>${run.passed == null ? 'Not tracked' : run.passed}</td>
+        <td>${run.failed == null ? 'Not tracked' : run.failed}</td>
+        <td>${run.skipped == null ? 'Not tracked' : run.skipped}</td>
+        <td>${run.passRate == null ? 'Not tracked' : `${run.passRate}%`}</td>
       </tr>
     `)
     .join('');
@@ -188,23 +205,19 @@ function buildDashboard(summary) {
     <div class="header">
       <div class="badge">Monthly Regression Dashboard</div>
       <h1>Regression Summary</h1>
-      <p class="subtitle">Latest month: ${latestMonth.month} | Pass rate: ${latestMonth.passRate}%</p>
+      <p class="subtitle">Latest month: ${latestMonth.month} | Regression scenario pass rate: ${regressionPassRate}%</p>
     </div>
 
     <div class="grid">
       <div class="card">
         <h2>Latest Month Snapshot</h2>
-        <div class="summary-box"><span>Total Test Cases</span><strong>${latestMonth.totalCases || latestMonth.total || 0}</strong></div>
-        <div class="summary-box"><span>Passed</span><strong>${latestMonth.passed}</strong></div>
-        <div class="summary-box"><span>Failed</span><strong>${latestMonth.failed}</strong></div>
-        <div class="summary-box"><span>Skipped</span><strong>${latestMonth.skipped}</strong></div>
-        <div class="summary-box"><span>Flaky</span><strong>${latestMonth.flaky || 0}</strong></div>
+        <div class="summary-box"><span>Total Regression Scenarios</span><strong>${regressionTotal}</strong></div>
+        <div class="summary-box"><span>Passed</span><strong>${regressionStats.passed || 0}</strong></div>
+        <div class="summary-box"><span>Failed</span><strong>${regressionStats.failed || 0}</strong></div>
+        <div class="summary-box"><span>Skipped</span><strong>${regressionStats.skipped || 0}</strong></div>
 
         <div style="margin-top:18px; padding-top:12px; border-top:1px solid #e5e7eb;">
-          <h3 style="margin:0 0 10px 0; font-size:16px;">Regression vs Smoke</h3>
-          <div class="summary-box"><span>Regression Total</span><strong>${regressionStats.total || 0}</strong></div>
-          <div class="summary-box"><span>Regression Passed</span><strong>${regressionStats.passed || 0}</strong></div>
-          <div class="summary-box"><span>Regression Failed</span><strong>${regressionStats.failed || 0}</strong></div>
+          <h3 style="margin:0 0 10px 0; font-size:16px;">Smoke Scenario Counts</h3>
           <div class="summary-box"><span>Smoke Total</span><strong>${smokeStats.total || 0}</strong></div>
           <div class="summary-box"><span>Smoke Passed</span><strong>${smokeStats.passed || 0}</strong></div>
           <div class="summary-box"><span>Smoke Failed</span><strong>${smokeStats.failed || 0}</strong></div>
@@ -212,7 +225,7 @@ function buildDashboard(summary) {
       </div>
 
       <div class="card">
-        <h2>Latest Month Pie Chart</h2>
+        <h2>Regression Scenario Results</h2>
         <div class="chart-wrap">
           <canvas id="pieChart"></canvas>
         </div>
@@ -232,11 +245,10 @@ function buildDashboard(summary) {
         <thead>
           <tr>
             <th>Month</th>
-            <th>Total Cases</th>
+            <th>Total Scenarios</th>
             <th>Passed</th>
             <th>Failed</th>
             <th>Skipped</th>
-            <th>Flaky</th>
             <th>Pass Rate</th>
           </tr>
         </thead>
@@ -247,23 +259,21 @@ function buildDashboard(summary) {
     </div>
 
     <div class="card">
-      <h2>Run-by-Run History</h2>
+      <h2>Regression Scenarios by Run</h2>
       <table>
         <thead>
           <tr>
             <th>Run Date</th>
-            <th>Tag</th>
             <th>Feature(s)</th>
-            <th>Total Cases</th>
+            <th>Total Scenarios</th>
             <th>Passed</th>
             <th>Failed</th>
             <th>Skipped</th>
-            <th>Flaky</th>
             <th>Pass Rate</th>
           </tr>
         </thead>
         <tbody>
-          ${runHistoryRows || '<tr><td colspan="9">No run history available.</td></tr>'}
+          ${runHistoryRows || '<tr><td colspan="7">No regression scenario history available.</td></tr>'}
         </tbody>
       </table>
     </div>
@@ -296,7 +306,7 @@ function buildDashboard(summary) {
         labels: ${JSON.stringify(labels)},
         datasets: [
           {
-            label: 'Passed',
+            label: 'Regression scenarios passed',
             data: ${JSON.stringify(passSeries)},
             borderColor: '#22c55e',
             backgroundColor: 'rgba(34, 197, 94, 0.2)',
@@ -304,7 +314,7 @@ function buildDashboard(summary) {
             tension: 0.3
           },
           {
-            label: 'Failed',
+            label: 'Regression scenarios failed',
             data: ${JSON.stringify(failSeries)},
             borderColor: '#ef4444',
             backgroundColor: 'rgba(239, 68, 68, 0.2)',
@@ -327,20 +337,24 @@ function buildDashboard(summary) {
 </html>`;
 }
 
-try {
-  if (!fs.existsSync(historyDir)) {
-    fs.mkdirSync(historyDir, { recursive: true });
-  }
+if (require.main === module) {
+  try {
+    if (!fs.existsSync(historyDir)) {
+      fs.mkdirSync(historyDir, { recursive: true });
+    }
 
-  const summary = readSummary();
-  if (!summary.length) {
-    console.log('No monthly data found. Run regression history first.');
+    const summary = readSummary();
+    if (!summary.length) {
+      console.log('No monthly data found. Run regression history first.');
+      process.exit(1);
+    }
+
+    fs.writeFileSync(outputFile, buildDashboard(summary));
+    console.log(`Monthly dashboard saved to ${outputFile}`);
+  } catch (error) {
+    console.error(error.message);
     process.exit(1);
   }
-
-  fs.writeFileSync(outputFile, buildDashboard(summary));
-  console.log(`Monthly dashboard saved to ${outputFile}`);
-} catch (error) {
-  console.error(error.message);
-  process.exit(1);
 }
+
+module.exports = { buildDashboard };
