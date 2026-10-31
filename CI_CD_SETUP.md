@@ -181,6 +181,14 @@ In workflow run page, scroll down to see:
 - Execution time
 - Dashboard link
 
+### Regression run details
+The `monthly-regression-report.yml` workflow adds a per-run summary to the GitHub Actions job page with:
+- Run start time (UTC), total duration, and passed/failed/skipped scenario counts
+- A table listing every regression feature, test case, result, and test-case duration
+- Expandable step-by-step results with each step's status and duration
+
+For the complete Cucumber HTML and JSON reports, download the `regression-run-details-<run number>` artifact from that workflow run. The monthly history artifact also includes `regression-run-summary.md`.
+
 ---
 
 ## 🔔 Enable Notifications
